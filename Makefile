@@ -20,7 +20,7 @@ update-deps: __c
 update-app-version:
 	touch lib/app-version.json
 
-production: __c __prepare_release_dir __production __release_commit
+release: __c __prepare_release_dir __production __release_commit
 
 __production: __app
 	gulp --webapp $(APP) --production
@@ -64,7 +64,7 @@ __prepare_release_dir:
 	)
 
 __release_commit:
-	( cd release/$(APP) && git add . && git commit )
+	( cd release/$(APP) && git add . && git commit -m "unattended commit")
 
 release-push:
 	@( cd release/$(APP) && git push )

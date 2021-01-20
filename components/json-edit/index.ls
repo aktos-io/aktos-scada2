@@ -1,36 +1,33 @@
 require! 'relaxed-json': rjson
 
-fixJSON = (x) -> rjson.parse(x)
-
 Ractive.components['json-edit'] = Ractive.extend do
-    template: '''
-        <textarea lazy="true"
-          style="{{style}}; white-space: pre-wrap; border: {{#if err}}2px dashed red{{else}}1px solid green{{/if}}"
-          title="{{err}}"
-          class="{{class}}"
-          >{{ objFormatted }}</textarea>
-        '''
+    template: require('./index.pug')
     isolated: yes
     data: ->
         objTmp: null
         value: null
         err: null
+        timeout: 500ms 
+        readonly: no 
+        title: null 
 
     computed:
         objFormatted:
             get: ->
                 if @get \objTmp
-                    return that
+                    that
                 else
-                    return JSON.stringify(@get('value'), null, 2)
+                    JSON.stringify (@get('value') or null), null, 2
 
             set: (objStr) ->
+                objStr ?= null 
+                return if @get \readonly 
                 try
-                    obj = fixJSON objStr
+                    obj = rjson.parse objStr
                     @set \value, obj
                     @set \objTmp, null
                     @set \err, null
                 catch
-                    console.warn "json-edit error was: ", e
+                    #console.warn "json-edit error was: ", e
                     @set \err, e.message
                     @set \objTmp, objStr

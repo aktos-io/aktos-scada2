@@ -65,7 +65,7 @@ Ractive.components['dropdown'] = Ractive.extend do
         selected-key-observer = null
         update-dropdown = (_new) ~>
             if @get \debug
-                @actor.log.log "#{@_guid}: selected key is changed to: ", _new
+                @actor.log.log "#{@_guid}: selected key is _being_ changed to: ", _new
             <~ set-immediate
             external-change := yes
             <~ :lo(op) ~>
@@ -204,7 +204,9 @@ Ractive.components['dropdown'] = Ractive.extend do
                         #@actor.c-log "Dropdown (#{@_guid}) : searchTerm is empty"
                         @set \dataReduced, small-part-of data
                 on-change: (value, text, selected) ~>
-                    return if external-change
+                    if external-change and not @get('listen-external')
+                        if @get \debug => @actor.c-log "Dropdown: Exiting from on-change handler as this is an external change."
+                        return 
                     if @get \debug => @actor.c-log "Dropdown: #{@_guid}: dropdown is changed: ", value
                     if @get \multiple
                         set-item unless value? => [] else value.split ','
@@ -251,6 +253,8 @@ Ractive.components['dropdown'] = Ractive.extend do
                 update-dropdown _new
 
         selected-key-observer = @observe \selected-key, ((val) ~>
+            unless val?
+                dd.dropdown 'clear'
             if @get \async
                 console.log "this is async mode and item is changed: ", val
                 set-item val

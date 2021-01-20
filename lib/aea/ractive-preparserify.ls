@@ -19,25 +19,29 @@ preparse-pug = (filename, template) ->
     template-full-path = path.join dirname, filename
 
     dependencies = [filename]
-    if ext is \.html 
-        template-html = template 
-    else if ext is \.pug
-        # include templates/mixins.pug file
-        mixin-relative = path.relative dirname, process.cwd!
-        template = """
-            include #{mixin-relative}/templates/mixins.pug
-            #{template}
-            """
-        # TODO: We should get dependencies and rendered content in one function call
-        opts = {filename: filename, filters: pug-filters, doctype: 'html'}
-        compile = pug.compile template, opts
-        deps = (pug.compileClientWithDependenciesTracked template, opts).dependencies
-        # End of TODO
-        dependencies ++= deps 
-        template-html = compile!
-    parsed = Ractive.parse template-html
+    error = null 
+    try 
+        if ext is \.html 
+            template-html = template 
+        else if ext is \.pug
+            # include templates/mixins.pug file
+            mixin-relative = path.relative dirname, process.cwd!
+            template = """
+                include #{mixin-relative}/templates/mixins.pug
+                #{template}
+                """
+            # TODO: We should get dependencies and rendered content in one function call
+            opts = {filename: filename, filters: pug-filters, doctype: 'html'}
+            compile = pug.compile template, opts
+            deps = (pug.compileClientWithDependenciesTracked template, opts).dependencies
+            # End of TODO
+            dependencies ++= deps 
+            template-html = compile!
+        parsed = Ractive.parse template-html
+    catch 
+        error = e 
     
-    return {parsed, dependencies}
+    return {parsed, dependencies, error}
 
 function isTemplate file
     return /.*\.(html|pug)$/.test(file);
@@ -52,15 +56,16 @@ export ractive-preparserify = (file) ->
             contents += chunk.to-string \utf-8
 
         end = -> 
-            try
-                x = preparse-pug file, contents
-                for x.dependencies
-                    # register the dependencies to browserify
-                    @emit \file, ..
+            x = preparse-pug file, contents
+            for x.dependencies
+                # register the dependencies to browserify
+                @emit \file, ..
+
+            unless x.error 
                 @queue "module.exports = #{JSON.stringify x.parsed}"
-            catch
-                console.error "Preparserify error: ", e
-                @emit 'error', e
+            else
+                console.error "Preparserify error: ", x.error
+                @emit 'error', x.error 
             @queue null 
 
         return through write, end

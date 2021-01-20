@@ -36,14 +36,17 @@
             span.text -------
         +endif
         .menu
+            //turn off autocomplete
+            input(type="hidden" value="something")
             .ui.icon.search.input
                 i.search.icon
-                input(type="text" placeholder="Search...")
+                input(type="search" autocomplete="off" placeholder="Search...")
 
             +each('dataReduced as item')
                 .item(
                     data-value!="{{item[keyField]}}" 
                     class-disabled="blacklist == item[keyField]"
+                    title="{{._tooltip}}"
                     ) {{item[nameField]}}
 
             +if('emptyReduced && ~/["allow-addition"]')
@@ -72,7 +75,7 @@
         .default.text {{ placeholder }}
         .menu
             +each('dataReduced')
-                .item(data-value!="{{.[keyField]}}") {{.[nameField]}}
+                .item(data-value!="{{.[keyField]}}" title="{{._tooltip}}") {{.[nameField]}}
 
             +if('@this.getContext().hasListener("add", true) && ~/["search-term"]')
                 +iff("@this.partials.addNew ")

@@ -3,3 +3,4 @@ es-check@5.1.0
 gulp@4.0.2
 livescript@1.6.0
 node-gyp@7.0.0
+npm-check@5.9.2

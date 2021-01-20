@@ -58,3 +58,6 @@ mixin showif(condition)
     
 mixin space
     != '&nbsp;'
+
+mixin set(key, value)
+    != '{{ @.set("' + key + '", ' + value + ') && "" }}'

@@ -1,0 +1,14 @@
+.ui.form(style="height: 100%; width: 100%;")
+    .field(style="height: 100%; width: 100%")
+        +if('title')
+            label {{title}}
+
+        //- lazy="xxx" : Update the content only when the mouse out of editing area
+            or timeout of xxx milliseconds is over.
+        textarea(
+            readonly="{{readonly}}"
+            lazy="{{timeout}}" 
+            style="height: 100%; width: 100%; {{style}}; white-space: pre-wrap; border: {{#if err}}2px dashed red{{else}}1px solid green{{/if}};"
+            title="{{err}}"
+            class="{{class}}"
+        ) {{ objFormatted }}

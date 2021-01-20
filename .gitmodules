@@ -13,3 +13,6 @@
 [submodule "tools/download.sh"]
 	path = tools/download.sh
 	url = https://github.com/ceremcem/download.sh
+[submodule "tools/debug-ls"]
+	path = tools/debug-ls
+	url = https://github.com/ceremcem/debug-ls

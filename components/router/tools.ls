@@ -1,6 +1,6 @@
 require! 'prelude-ls': {take, drop, split, find}
 
-basename = (.split(/[\\/]/).pop!) # https://stackoverflow.com/questions/3820381#comment29942319_15270931
+export basename = (.split(/[\\/]/).pop!) # https://stackoverflow.com/questions/3820381#comment29942319_15270931
 
 export get-offset = ->
     $ 'body' .scrollTop!

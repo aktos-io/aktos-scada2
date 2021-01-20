@@ -4,7 +4,7 @@ require! './logger': {Logger}
 Usage
     vlog = new VLogger this
 
-    res, data <~ vlog.yesno
+    answer, data <~ vlog.yesno
         title: 'Yes or No'
         icon: 'map signs'
         template: 'some ractive content'
@@ -13,10 +13,10 @@ Usage
                 ...
             myaction2:
                 ...
-    /* res:
-        type: String of action, one of
-            keys opts.buttons
-            or
+    /* answer:
+        type: String of action, 
+            One of: keys of opts.buttons
+            - or - 
             "hidden" (if closed without action)
 
         data: Ractive.data if `template` is passed within the options

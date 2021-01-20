@@ -1,26 +1,15 @@
 #!/bin/bash
+safe_source () { [[ ! -z ${1:-} ]] && source $1; _dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; _sdir=$(dirname "$(readlink -f "$0")"); }; safe_source
+DIR="$_dir"
 
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+[[ -f "$_sdir/node-path.sh" ]] && source "$_sdir/node-path.sh"
 
-find_scada_root () {
-    local name=""
-    testing_dir=$1
-    while :; do
-        name=$(basename $testing_dir)
-        ls "$testing_dir/scada.js" > /dev/null 2>&1
-        if [[ "$?" == "0" ]]; then
-            echo "$testing_dir/scada.js"
-            return 0
-        elif [[ "$name" == "scada.js" ]]; then
-            echo $testing_dir
-            return 0
-        elif [[ "$name" == "/" ]]; then
-            return 255
-        else
-            testing_dir=$(realpath "$testing_dir/..")
-        fi
-    done
-}
+watch=
+if [[ "$1" = "-w" ]]; then
+    echo "Watch mode enabled."
+    watch=true
+    shift
+fi
 
 filename=$1
 
@@ -29,29 +18,7 @@ if [[ ! -f $filename ]]; then
     exit 255
 fi
 
-base_dir=$(dirname $filename)
-#echo "DEBUG: Base Dir: $base_dir"
-
-SCADA_DIR=$(find_scada_root $base_dir)
-
-if [[ -d $SCADA_DIR ]]; then
-    #echo "DEBUG: found scada root: $SCADA_DIR"
-    SCADA_MODULES="${SCADA_DIR}/lib"
-    PROJECT_PATH=$(realpath "${SCADA_DIR}/..")
-
-    echo "ScadaJS project path: ${PROJECT_PATH}"
-
-    FOUND_MODULES=
-    # add every `node_modules` into the path
-    while IFS= read -r module; do
-        #echo "++++++++++ adding path: $module"
-        FOUND_MODULES="${FOUND_MODULES}:$module"
-    done < <(find $PROJECT_PATH -type d -name "node_modules" 2> /dev/null | grep -v "node_modules\/" )
-fi
-
-export NODE_PATH="${SCADA_MODULES}:${FOUND_MODULES}:${NODE_PATH}"
-
-lsFile="$1"
+lsFile="$filename"
 shift
 set-pane-title () {
     if [ "$TERM" = "screen" ] && [ -n "$TMUX" ]; then
@@ -62,4 +29,32 @@ set-pane-title () {
 
 }
 set-pane-title ${lsFile%.ls}
-lsc $lsFile "$@"
+
+if [[ -z $watch ]]; then
+    lsc $lsFile "$@"
+else
+
+    LTIME=
+    CMD_PID=
+
+    cleanup(){
+        [[ -n $CMD_PID ]] && kill $CMD_PID
+    }
+    trap cleanup EXIT
+
+    while :; do
+       ATIME=`stat -c %Z "$lsFile"`
+       if [[ "$ATIME" != "$LTIME" ]]; then
+            if [[ -n $CMD_PID ]]; then
+                echo "---------------------------------------"
+                echo "|             Restarting...           |"
+                echo "---------------------------------------"
+                kill $CMD_PID
+            fi
+            lsc $lsFile "$@" &
+            CMD_PID=$!
+            LTIME=$ATIME
+       fi
+       sleep 2
+    done
+fi

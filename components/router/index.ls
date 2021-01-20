@@ -3,7 +3,7 @@ require! 'actors':  {RactiveActor}
 require! './tools': {
     change-hash-listener, set-window-hash, make-link, scroll-to, 
     set-scroll-top, get-scroll-top, parse-link, get-window-hash, get-offset
-    set-window-hash
+    set-window-hash, basename 
 }
 
 Ractive.components['a'] = Ractive.extend do
